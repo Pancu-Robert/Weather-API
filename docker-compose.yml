@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: my_postgres
+    volumes:
+      - 'postgres_data:/var/lib/postgresql/data'
+    environment:
+      POSTGRES_DB: meteo_db
+      POSTGRES_USER: robert
+      POSTGRES_PASSWORD: student
+    ports:
+      - "5432:5432"
+    networks:
+      - flask_postgres_network
+      - postgres_pgadmin_network
+
+  flask_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my_flask_app
+    depends_on:
+      - postgres
+    environment:
+      DB_USERNAME: robert
+      DB_PASSWORD: student
+      DB_HOST: my_postgres
+      DB_PORT: 5432
+      DB_NAME: meteo_db
+    ports:
+      - "6000:6000"
+    networks:
+    - flask_postgres_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: my_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@yahoo.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - postgres_pgadmin_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  flask_postgres_network:
+  postgres_pgadmin_network:
